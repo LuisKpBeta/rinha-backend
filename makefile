@@ -7,3 +7,6 @@ run_dev:
 
 stop_dev:
 	docker compose -f docker-compose.dev.yml down
+
+test:
+	go test ./... 
