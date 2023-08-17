@@ -23,7 +23,7 @@ func (p *PeopleController) Create(c *gin.Context) {
 	var dto CreatePopleDto
 	err := c.ShouldBind(&dto)
 	if err != nil {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "preencha o body corretamente"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "preencha o body corretamente"})
 		return
 	}
 	err = dto.IsValid()

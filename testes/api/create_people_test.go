@@ -176,7 +176,7 @@ func (suite *TaskApiTestSuite) Test_CreatePeopleWithError_NameIsOnlyNumber() {
 	res, err := suite.makeHttpPost(payload, "/people")
 	suite.NoError(err)
 	defer res.Body.Close()
-	suite.Equal(http.StatusUnprocessableEntity, res.StatusCode)
+	suite.Equal(http.StatusBadRequest, res.StatusCode)
 }
 func (suite *TaskApiTestSuite) Test_CreatePeopleWithError_StackHasNumber() {
 	payload := CreatePeoplePayloadInvalid{
@@ -187,5 +187,5 @@ func (suite *TaskApiTestSuite) Test_CreatePeopleWithError_StackHasNumber() {
 	res, err := suite.makeHttpPost(payload, "/people")
 	suite.NoError(err)
 	defer res.Body.Close()
-	suite.Equal(http.StatusUnprocessableEntity, res.StatusCode)
+	suite.Equal(http.StatusBadRequest, res.StatusCode)
 }
