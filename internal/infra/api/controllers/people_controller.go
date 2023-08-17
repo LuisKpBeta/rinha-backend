@@ -20,10 +20,10 @@ func CreatePeopleController(create *people.CreatePeople) *PeopleController {
 }
 
 func (p *PeopleController) Create(c *gin.Context) {
-	dto := &CreatePopleDto{}
-	err := c.Bind(&dto)
+	var dto CreatePopleDto
+	err := c.ShouldBind(&dto)
 	if err != nil {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "preencha o body corretamente"})
 		return
 	}
 	err = dto.IsValid()
@@ -31,7 +31,7 @@ func (p *PeopleController) Create(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
-	created, err := p.createPeople.Create(dto.Name, dto.Nickname, dto.Birthday, dto.Stacks)
+	created, err := p.createPeople.Create(dto.Nickname, dto.Name, dto.Birthday, dto.Stacks)
 	if err != nil {
 		if errors.Is(err, people.ErrNickNameAlreadyExists) {
 			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
