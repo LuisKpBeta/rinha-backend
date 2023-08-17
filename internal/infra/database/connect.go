@@ -31,7 +31,7 @@ func ConnectToDatabase() *sql.DB {
 	checkError(err)
 	db.SetMaxOpenConns(MAX_OPEN_CONN)
 	db.SetMaxOpenConns(MAX_IDLE_CONN)
-
+	CreateTable(db)
 	return db
 }
 
