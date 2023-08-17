@@ -1,6 +1,8 @@
 package people_controller
 
-import "time"
+import (
+	"time"
+)
 
 var (
 	DATE_LAYOUT = "2006-01-02"
@@ -14,8 +16,14 @@ type CreatePopleDto struct {
 }
 
 func (c *CreatePopleDto) IsValid() error {
+	if len(c.Nickname) == 0 {
+		return ErrEmptyNickName
+	}
 	if len(c.Nickname) > 32 {
 		return ErrTooLongNickName
+	}
+	if len(c.Name) == 0 {
+		return ErrEmptyName
 	}
 	if len(c.Name) > 100 {
 		return ErrTooLongName
