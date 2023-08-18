@@ -16,6 +16,11 @@ func CreatePeopleRepository(db *sql.DB) people.CreatePeopleRepository {
 		DbConn: db,
 	}
 }
+func CreateFindPeopleRepository(db *sql.DB) people.FindPeopleByIdRepository {
+	return &PeopleRepository{
+		DbConn: db,
+	}
+}
 
 func (p *PeopleRepository) NickNameExists(nickname string) (bool, error) {
 	var id string
@@ -39,4 +44,18 @@ func (p *PeopleRepository) Create(people *people.People) error {
 	defer stmt.Close()
 	stmt.QueryRow(people.Id, people.Nickname, people.Name, people.Birthday, people.Stacks)
 	return nil
+}
+
+func (p *PeopleRepository) Find(id uuid.UUID) (*people.People, error) {
+	var people people.People
+	err := p.DbConn.QueryRow("SELECT id, nickname, name, birthdate, stack FROM people WHERE id = $1", id).
+		Scan(&people.Id, &people.Nickname, &people.Name, &people.Birthday, &people.Stacks)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &people, nil
 }
