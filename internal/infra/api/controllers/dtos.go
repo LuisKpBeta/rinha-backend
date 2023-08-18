@@ -14,6 +14,13 @@ type CreatePopleDto struct {
 	Birthday string   `json:"nascimento" validate:"required,datetime=2006-01-02"`
 	Stacks   []string `json:"stacks" validate:"dive, max=32"`
 }
+type ReadPopleDto struct {
+	Id       string   `json:"id"`
+	Nickname string   `json:"apelido" `
+	Name     string   `json:"nome" `
+	Birthday string   `json:"nascimento" `
+	Stacks   []string `json:"stacks" `
+}
 
 func (c *CreatePopleDto) IsValid() error {
 	if len(c.Nickname) == 0 {
