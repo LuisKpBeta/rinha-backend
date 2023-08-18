@@ -1,4 +1,4 @@
-package test_create_people
+package test_people
 
 import (
 	"bytes"
@@ -42,9 +42,16 @@ func (suite *TaskApiTestSuite) SetupHttpServer() {
 	create := &people.CreatePeople{
 		Repository: peopleRepo,
 	}
-	controller := pc.CreatePeopleController(create)
+
+	findPeopleRepo := repo.CreateFindPeopleRepository(suite.Db)
+	findPeople := &people.FindPeopleById{
+		Repository: findPeopleRepo,
+	}
+
+	controller := pc.CreatePeopleController(create, findPeople)
 
 	suite.r.POST("/people", controller.Create)
+	suite.r.GET("/people/:id", controller.FindById)
 }
 func (suite *TaskApiTestSuite) RunHttpServer() {
 	suite.ts = httptest.NewServer(suite.r)
@@ -68,6 +75,13 @@ type CreatePeoplePayloadInvalid struct {
 type ErrorResponse struct {
 	Error string
 }
+type PeopleResponse struct {
+	Id         string   `json:"id"`
+	Apelido    string   `json:"apelido"`
+	Nome       string   `json:"nome"`
+	Nascimento string   `json:"nascimento"`
+	Stacks     []string `json:"stacks"`
+}
 
 func (suite *TaskApiTestSuite) InsertPeopleDb(p *people.People) {
 	p.Id = uuid.NewString()
@@ -83,6 +97,14 @@ func (suite *TaskApiTestSuite) makeHttpPost(payload interface{}, url string) (*h
 	jsonData, _ := json.Marshal(payload)
 	client := &http.Client{}
 	request, _ := http.NewRequest("POST", suite.ts.URL+url, bytes.NewBuffer(jsonData))
+	request.Header.Add("Content-Type", "application/json")
+	res, err := client.Do(request)
+
+	return res, err
+}
+func (suite *TaskApiTestSuite) makeHttpGet(url string) (*http.Response, error) {
+	client := &http.Client{}
+	request, _ := http.NewRequest("GET", suite.ts.URL+url, nil)
 	request.Header.Add("Content-Type", "application/json")
 	res, err := client.Do(request)
 
@@ -188,4 +210,40 @@ func (suite *TaskApiTestSuite) Test_CreatePeopleWithError_StackHasNumber() {
 	suite.NoError(err)
 	defer res.Body.Close()
 	suite.Equal(http.StatusBadRequest, res.StatusCode)
+}
+
+func (suite *TaskApiTestSuite) Test_FindPeopleByIdWhenExists() {
+	people := people.People{
+		Nickname: "already_exists",
+		Name:     "dummy",
+		Birthday: "1999-01-01",
+		Stacks:   "C#, javascript",
+	}
+	suite.InsertPeopleDb(&people)
+	url := "/people/" + people.Id
+	res, err := suite.makeHttpGet(url)
+	suite.NoError(err)
+	defer res.Body.Close()
+	testCheck := suite.Equal(http.StatusOK, res.StatusCode)
+	if !testCheck {
+		return
+	}
+	peopleRes := &PeopleResponse{}
+	derr := json.NewDecoder(res.Body).Decode(peopleRes)
+	if derr != nil {
+		panic(derr)
+	}
+	suite.Equal(people.Id, peopleRes.Id)
+	suite.Equal(people.Name, peopleRes.Nome)
+	suite.Equal(people.Nickname, peopleRes.Apelido)
+	suite.Equal(people.Birthday, peopleRes.Nascimento)
+	suite.Equal(len(people.GetArrayFromStringStack()), len(peopleRes.Stacks))
+}
+func (suite *TaskApiTestSuite) Test_FindPeopleByIdWhenNotExists() {
+	url := "/people/" + uuid.NewString()
+	res, err := suite.makeHttpGet(url)
+	suite.NoError(err)
+	defer res.Body.Close()
+	suite.Equal(http.StatusNotFound, res.StatusCode)
+
 }
