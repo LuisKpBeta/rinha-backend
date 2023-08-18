@@ -15,11 +15,16 @@ func main() {
 	create := &people.CreatePeople{
 		Repository: peopleRepo,
 	}
+	findPeopleRepo := repo.CreateFindPeopleRepository(dbConn)
+	findPeople := &people.FindPeopleById{
+		Repository: findPeopleRepo,
+	}
 
-	controller := pc.CreatePeopleController(create)
+	controller := pc.CreatePeopleController(create, findPeople)
 	r := api.CreateHttpServer()
 
 	r.POST("/people", controller.Create)
+	r.GET("/people/:id", controller.FindById)
 
 	api.StartHttpServer(r)
 }
