@@ -40,7 +40,7 @@ func CreateTable(db *sql.DB) {
 			id uuid NOT NULL,
 			nickname varchar(32) PRIMARY KEY NOT NULL,
 			"name" varchar(100) NOT NULL,
-			birthdate date NULL,
+			birthday date NULL,
 			stack text NULL
 	);`
 	_, err := db.Exec(create_table_query)
