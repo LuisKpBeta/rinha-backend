@@ -41,7 +41,7 @@ func CreateTable(db *sql.DB) {
 			nickname varchar(32) PRIMARY KEY NOT NULL,
 			"name" varchar(100) NOT NULL,
 			birthday date NULL,
-			stack text NULL
+			stacks text NULL
 	);`
 	_, err := db.Exec(create_table_query)
 	if err != nil {
