@@ -8,5 +8,5 @@ func CreateHttpServer() *gin.Engine {
 }
 func StartHttpServer(server *gin.Engine) {
 	server.Use(gin.Logger())
-	server.Run(":8080")
+	server.Run(":80")
 }

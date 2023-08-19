@@ -32,9 +32,9 @@ func main() {
 	controller := pc.CreatePeopleController(create, findPeople, searchPeople, countPeople)
 	r := api.CreateHttpServer()
 
-	r.POST("/people", controller.Create)
-	r.GET("/people", controller.SearchPeopleByTerm)
-	r.GET("/people/:id", controller.FindById)
+	r.POST("/pessoas", controller.Create)
+	r.GET("/pessoas", controller.SearchPeopleByTerm)
+	r.GET("/pessoas/:id", controller.FindById)
 	r.GET("/contagem-pessoas", controller.Count)
 
 	api.StartHttpServer(r)

@@ -54,9 +54,9 @@ func (suite *TaskApiTestSuite) SetupHttpServer() {
 
 	controller := pc.CreatePeopleController(create, findPeople, searchPeople, countPeople)
 
-	suite.r.POST("/people", controller.Create)
-	suite.r.GET("/people", controller.SearchPeopleByTerm)
-	suite.r.GET("/people/:id", controller.FindById)
+	suite.r.POST("/pessoas", controller.Create)
+	suite.r.GET("/pessoas", controller.SearchPeopleByTerm)
+	suite.r.GET("/pessoas/:id", controller.FindById)
 	suite.r.GET("/contagem-pessoas", controller.Count)
 }
 func (suite *TaskApiTestSuite) RunHttpServer() {
