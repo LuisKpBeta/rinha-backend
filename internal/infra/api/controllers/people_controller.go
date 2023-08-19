@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/LuisKpBeta/rinha-backend/internal/services/people"
 	"github.com/gin-gonic/gin"
@@ -14,12 +13,14 @@ import (
 type PeopleController struct {
 	createPeople   *people.CreatePeople
 	findPeopleById *people.FindPeopleById
+	searchPeople   *people.SearchPeople
 }
 
-func CreatePeopleController(create *people.CreatePeople, find *people.FindPeopleById) *PeopleController {
+func CreatePeopleController(create *people.CreatePeople, find *people.FindPeopleById, search *people.SearchPeople) *PeopleController {
 	return &PeopleController{
 		createPeople:   create,
 		findPeopleById: find,
+		searchPeople:   search,
 	}
 }
 
@@ -57,7 +58,6 @@ func (p *PeopleController) FindById(c *gin.Context) {
 	}
 	people, err := p.findPeopleById.Find(userId)
 	if err != nil {
-		fmt.Println(err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
@@ -66,13 +66,41 @@ func (p *PeopleController) FindById(c *gin.Context) {
 		return
 	}
 
-	onlyDate := strings.Split(people.Birthday, "T")[0]
 	readPeople := ReadPopleDto{
 		Id:       fmt.Sprint(people.Id),
 		Nickname: people.Nickname,
 		Name:     people.Name,
-		Birthday: onlyDate,
+		Birthday: people.GetBirthdayFormated(),
 		Stacks:   people.GetArrayFromStringStack(),
 	}
 	c.JSON(http.StatusOK, readPeople)
+}
+
+func (p *PeopleController) SearchPeopleByTerm(c *gin.Context) {
+	term := c.Query("t")
+	if term == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "o query param 't' é obrigátorio para busca"})
+	}
+	pList, err := p.searchPeople.SearchByTerm(term)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return
+	}
+
+	peopleList := make([]ReadPopleDto, len(pList))
+	if len(pList) == 0 {
+		c.JSON(http.StatusOK, peopleList)
+		return
+	}
+	for i, pItem := range pList {
+		readPeople := ReadPopleDto{
+			Id:       fmt.Sprint(pItem.Id),
+			Nickname: pItem.Nickname,
+			Name:     pItem.Name,
+			Birthday: pItem.GetBirthdayFormated(),
+			Stacks:   pItem.GetArrayFromStringStack(),
+		}
+		peopleList[i] = readPeople
+	}
+	c.JSON(http.StatusOK, peopleList)
 }
