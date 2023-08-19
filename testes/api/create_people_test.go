@@ -2,90 +2,17 @@ package test_people
 
 import (
 	"bytes"
-	"database/sql"
 	"net/http"
-	"net/http/httptest"
-	"testing"
 
 	pc "github.com/LuisKpBeta/rinha-backend/internal/infra/api/controllers"
-	"github.com/LuisKpBeta/rinha-backend/internal/infra/database"
-	repo "github.com/LuisKpBeta/rinha-backend/internal/infra/database/people"
 	"github.com/LuisKpBeta/rinha-backend/internal/services/people"
-	"github.com/gin-gonic/gin"
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
-	"github.com/stretchr/testify/suite"
 )
-
-type TaskApiTestSuite struct {
-	suite.Suite
-	Db *sql.DB
-	r  *gin.Engine
-	ts *httptest.Server
-}
-
-func (suite *TaskApiTestSuite) SetupSuite() {
-	suite.r = gin.Default()
-	suite.Db = database.ConnectToDatabase()
-	suite.SetupHttpServer()
-	suite.RunHttpServer()
-}
-func (suite *TaskApiTestSuite) TearDownSuite() {
-	suite.Db.Close()
-}
-func (suite *TaskApiTestSuite) SetupTest() {
-	stmt, _ := suite.Db.Prepare("DELETE FROM people")
-	stmt.Exec()
-}
-func (suite *TaskApiTestSuite) SetupHttpServer() {
-	peopleRepo := repo.CreatePeopleRepository(suite.Db)
-	create := &people.CreatePeople{
-		Repository: peopleRepo,
-	}
-
-	findPeopleRepo := repo.CreateFindPeopleRepository(suite.Db)
-	findPeople := &people.FindPeopleById{
-		Repository: findPeopleRepo,
-	}
-
-	controller := pc.CreatePeopleController(create, findPeople)
-
-	suite.r.POST("/people", controller.Create)
-	suite.r.GET("/people/:id", controller.FindById)
-}
-func (suite *TaskApiTestSuite) RunHttpServer() {
-	suite.ts = httptest.NewServer(suite.r)
-}
-func TestSuite(t *testing.T) {
-	suite.Run(t, new(TaskApiTestSuite))
-}
-
-type CreatePeoplePayload struct {
-	Apelido    string   `json:"apelido,omitempty"`
-	Nome       string   `json:"nome,omitempty"`
-	Nascimento string   `json:"nascimento,omitempty"`
-	Stacks     []string `json:"stacks"`
-}
-type CreatePeoplePayloadInvalid struct {
-	Apelido    interface{}   `json:"apelido,omitempty"`
-	Nome       string        `json:"nome,omitempty"`
-	Nascimento string        `json:"nascimento,omitempty"`
-	Stacks     []interface{} `json:"stacks"`
-}
-type ErrorResponse struct {
-	Error string
-}
-type PeopleResponse struct {
-	Id         string   `json:"id"`
-	Apelido    string   `json:"apelido"`
-	Nome       string   `json:"nome"`
-	Nascimento string   `json:"nascimento"`
-	Stacks     []string `json:"stacks"`
-}
 
 func (suite *TaskApiTestSuite) InsertPeopleDb(p *people.People) {
 	p.Id = uuid.NewString()
-	stmt, err := suite.Db.Prepare("INSERT INTO people (id, nickname, name, birthdate, stack)  VALUES ($1, $2, $3, $4, $5)")
+	stmt, err := suite.Db.Prepare("INSERT INTO people (id, nickname, name, birthday, stacks)  VALUES ($1, $2, $3, $4, $5)")
 	if err != nil {
 		panic(err)
 	}
@@ -204,46 +131,10 @@ func (suite *TaskApiTestSuite) Test_CreatePeopleWithError_StackHasNumber() {
 	payload := CreatePeoplePayloadInvalid{
 		Apelido:    "dummy",
 		Nascimento: "1999-01-01",
-		Stacks:     []interface{}{1, "stack"},
+		Stacks:     []interface{}{1, "stacks"},
 	}
 	res, err := suite.makeHttpPost(payload, "/people")
 	suite.NoError(err)
 	defer res.Body.Close()
 	suite.Equal(http.StatusBadRequest, res.StatusCode)
-}
-
-func (suite *TaskApiTestSuite) Test_FindPeopleByIdWhenExists() {
-	people := people.People{
-		Nickname: "already_exists",
-		Name:     "dummy",
-		Birthday: "1999-01-01",
-		Stacks:   "C#, javascript",
-	}
-	suite.InsertPeopleDb(&people)
-	url := "/people/" + people.Id
-	res, err := suite.makeHttpGet(url)
-	suite.NoError(err)
-	defer res.Body.Close()
-	testCheck := suite.Equal(http.StatusOK, res.StatusCode)
-	if !testCheck {
-		return
-	}
-	peopleRes := &PeopleResponse{}
-	derr := json.NewDecoder(res.Body).Decode(peopleRes)
-	if derr != nil {
-		panic(derr)
-	}
-	suite.Equal(people.Id, peopleRes.Id)
-	suite.Equal(people.Name, peopleRes.Nome)
-	suite.Equal(people.Nickname, peopleRes.Apelido)
-	suite.Equal(people.Birthday, peopleRes.Nascimento)
-	suite.Equal(len(people.GetArrayFromStringStack()), len(peopleRes.Stacks))
-}
-func (suite *TaskApiTestSuite) Test_FindPeopleByIdWhenNotExists() {
-	url := "/people/" + uuid.NewString()
-	res, err := suite.makeHttpGet(url)
-	suite.NoError(err)
-	defer res.Body.Close()
-	suite.Equal(http.StatusNotFound, res.StatusCode)
-
 }
