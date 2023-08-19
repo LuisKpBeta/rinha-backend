@@ -16,7 +16,7 @@ func (suite *TaskApiTestSuite) Test_FindPeopleByIdWhenExists() {
 		Stacks:   "C#, javascript",
 	}
 	suite.InsertPeopleDb(&people)
-	url := "/people/" + people.Id
+	url := "/pessoas/" + people.Id
 	res, err := suite.makeHttpGet(url)
 	suite.NoError(err)
 	defer res.Body.Close()
@@ -36,7 +36,7 @@ func (suite *TaskApiTestSuite) Test_FindPeopleByIdWhenExists() {
 	suite.Equal(len(people.GetArrayFromStringStack()), len(peopleRes.Stacks))
 }
 func (suite *TaskApiTestSuite) Test_FindPeopleByIdWhenNotExists() {
-	url := "/people/" + uuid.NewString()
+	url := "/pessoas/" + uuid.NewString()
 	res, err := suite.makeHttpGet(url)
 	suite.NoError(err)
 	defer res.Body.Close()

@@ -8,14 +8,14 @@ import (
 )
 
 func (suite *TaskApiTestSuite) Test_SearchPeopleWithEmptyTerm() {
-	url := "/people?t="
+	url := "/pessoas?t="
 	res, err := suite.makeHttpGet(url)
 	suite.NoError(err)
 	defer res.Body.Close()
 	suite.Equal(http.StatusBadRequest, res.StatusCode)
 }
 func (suite *TaskApiTestSuite) Test_SearchPeopleWithNoResult() {
-	url := "/people?t=anyone"
+	url := "/pessoas?t=anyone"
 	res, err := suite.makeHttpGet(url)
 	suite.NoError(err)
 	defer res.Body.Close()
@@ -44,7 +44,7 @@ func (suite *TaskApiTestSuite) Test_SearchPeopleWithMatchName() {
 
 	suite.InsertPeopleDb(&people1)
 	suite.InsertPeopleDb(&people2)
-	url := "/people?t=umm"
+	url := "/pessoas?t=umm"
 	res, err := suite.makeHttpGet(url)
 	suite.NoError(err)
 	defer res.Body.Close()
@@ -79,7 +79,7 @@ func (suite *TaskApiTestSuite) Test_SearchPeopleWithMatchNickname() {
 
 	suite.InsertPeopleDb(&people1)
 	suite.InsertPeopleDb(&people2)
-	url := "/people?t=ond"
+	url := "/pessoas?t=ond"
 	res, err := suite.makeHttpGet(url)
 	suite.NoError(err)
 	defer res.Body.Close()
@@ -114,7 +114,7 @@ func (suite *TaskApiTestSuite) Test_SearchPeopleWithMatchNameAndNickName() {
 
 	suite.InsertPeopleDb(&people1)
 	suite.InsertPeopleDb(&people2)
-	url := "/people?t=ond"
+	url := "/pessoas?t=ond"
 	res, err := suite.makeHttpGet(url)
 	suite.NoError(err)
 	defer res.Body.Close()
@@ -153,7 +153,7 @@ func (suite *TaskApiTestSuite) Test_SearchPeopleWithMatchStackAndName() {
 
 	suite.InsertPeopleDb(&people1)
 	suite.InsertPeopleDb(&people2)
-	url := "/people?t=ond"
+	url := "/pessoas?t=ond"
 	res, err := suite.makeHttpGet(url)
 	suite.NoError(err)
 	defer res.Body.Close()

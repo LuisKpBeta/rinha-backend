@@ -44,7 +44,7 @@ func (suite *TaskApiTestSuite) Test_CreatePeopleWithSuccess() {
 		Nascimento: "1999-01-01",
 		Stacks:     []string{"stack1", "stack2", "stack3"},
 	}
-	res, err := suite.makeHttpPost(payload, "/people")
+	res, err := suite.makeHttpPost(payload, "/pessoas")
 	suite.NoError(err)
 	defer res.Body.Close()
 	suite.Equal(http.StatusCreated, res.StatusCode)
@@ -56,7 +56,7 @@ func (suite *TaskApiTestSuite) Test_CreatePeopleWithSuccess_EmptyStacks() {
 		Nascimento: "1999-01-01",
 		Stacks:     nil,
 	}
-	res, err := suite.makeHttpPost(payload, "/people")
+	res, err := suite.makeHttpPost(payload, "/pessoas")
 	suite.NoError(err)
 	defer res.Body.Close()
 	suite.Equal(http.StatusCreated, res.StatusCode)
@@ -74,7 +74,7 @@ func (suite *TaskApiTestSuite) Test_CreatePeopleWithError_NameAlreadyExists() {
 		Nascimento: "1999-01-01",
 		Stacks:     nil,
 	}
-	res, err := suite.makeHttpPost(payload, "/people")
+	res, err := suite.makeHttpPost(payload, "/pessoas")
 	suite.NoError(err)
 	defer res.Body.Close()
 	suite.Equal(http.StatusUnprocessableEntity, res.StatusCode)
@@ -90,7 +90,7 @@ func (suite *TaskApiTestSuite) Test_CreatePeopleWithError_NameIsNull() {
 		Apelido:    "dummy",
 		Nascimento: "1999-01-01",
 	}
-	res, err := suite.makeHttpPost(payload, "/people")
+	res, err := suite.makeHttpPost(payload, "/pessoas")
 	suite.NoError(err)
 	defer res.Body.Close()
 	suite.Equal(http.StatusUnprocessableEntity, res.StatusCode)
@@ -106,7 +106,7 @@ func (suite *TaskApiTestSuite) Test_CreatePeopleWithError_NickNameIsNull() {
 		Nome:       "dummy",
 		Nascimento: "1999-01-01",
 	}
-	res, err := suite.makeHttpPost(payload, "/people")
+	res, err := suite.makeHttpPost(payload, "/pessoas")
 	suite.NoError(err)
 	defer res.Body.Close()
 	suite.Equal(http.StatusUnprocessableEntity, res.StatusCode)
@@ -122,7 +122,7 @@ func (suite *TaskApiTestSuite) Test_CreatePeopleWithError_NameIsOnlyNumber() {
 		Apelido:    1,
 		Nascimento: "1999-01-01",
 	}
-	res, err := suite.makeHttpPost(payload, "/people")
+	res, err := suite.makeHttpPost(payload, "/pessoas")
 	suite.NoError(err)
 	defer res.Body.Close()
 	suite.Equal(http.StatusBadRequest, res.StatusCode)
@@ -133,7 +133,7 @@ func (suite *TaskApiTestSuite) Test_CreatePeopleWithError_StackHasNumber() {
 		Nascimento: "1999-01-01",
 		Stacks:     []interface{}{1, "stacks"},
 	}
-	res, err := suite.makeHttpPost(payload, "/people")
+	res, err := suite.makeHttpPost(payload, "/pessoas")
 	suite.NoError(err)
 	defer res.Body.Close()
 	suite.Equal(http.StatusBadRequest, res.StatusCode)
