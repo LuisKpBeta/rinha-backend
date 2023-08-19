@@ -14,3 +14,6 @@ type FindPeopleByIdRepository interface {
 type SearchPeopleRepository interface {
 	SearchPeople(term string) ([]People, error)
 }
+type CountPeopleRepository interface {
+	Count() (int, error)
+}

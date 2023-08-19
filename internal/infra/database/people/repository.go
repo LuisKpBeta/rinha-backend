@@ -30,6 +30,11 @@ func CreateSearchPeopleRepository(db *sql.DB) people.SearchPeopleRepository {
 		DbConn: db,
 	}
 }
+func CreateCountPeopleRepository(db *sql.DB) people.CountPeopleRepository {
+	return &PeopleRepository{
+		DbConn: db,
+	}
+}
 
 func (p *PeopleRepository) NickNameExists(nickname string) (bool, error) {
 	var id string
@@ -97,4 +102,14 @@ func (p *PeopleRepository) SearchPeople(term string) ([]people.People, error) {
 	}
 	return peopleList, nil
 
+}
+
+func (p *PeopleRepository) Count() (int, error) {
+	var total int
+	err := p.DbConn.QueryRow("SELECT Count(id) FROM people").Scan(&total)
+
+	if err != nil {
+		return 0, err
+	}
+	return total, nil
 }

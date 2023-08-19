@@ -24,12 +24,18 @@ func main() {
 		Repository: searchPeopleRepo,
 	}
 
-	controller := pc.CreatePeopleController(create, findPeople, searchPeople)
+	countPeopleRepo := repo.CreateCountPeopleRepository(dbConn)
+	countPeople := &people.CountPeople{
+		Repository: countPeopleRepo,
+	}
+
+	controller := pc.CreatePeopleController(create, findPeople, searchPeople, countPeople)
 	r := api.CreateHttpServer()
 
 	r.POST("/people", controller.Create)
 	r.GET("/people", controller.SearchPeopleByTerm)
 	r.GET("/people/:id", controller.FindById)
+	r.GET("/contagem-pessoas", controller.Count)
 
 	api.StartHttpServer(r)
 }

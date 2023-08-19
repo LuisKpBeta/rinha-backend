@@ -14,13 +14,15 @@ type PeopleController struct {
 	createPeople   *people.CreatePeople
 	findPeopleById *people.FindPeopleById
 	searchPeople   *people.SearchPeople
+	countPeople    *people.CountPeople
 }
 
-func CreatePeopleController(create *people.CreatePeople, find *people.FindPeopleById, search *people.SearchPeople) *PeopleController {
+func CreatePeopleController(create *people.CreatePeople, find *people.FindPeopleById, search *people.SearchPeople, count *people.CountPeople) *PeopleController {
 	return &PeopleController{
 		createPeople:   create,
 		findPeopleById: find,
 		searchPeople:   search,
+		countPeople:    count,
 	}
 }
 
@@ -103,4 +105,12 @@ func (p *PeopleController) SearchPeopleByTerm(c *gin.Context) {
 		peopleList[i] = readPeople
 	}
 	c.JSON(http.StatusOK, peopleList)
+}
+func (p *PeopleController) Count(c *gin.Context) {
+	total, err := p.countPeople.Count()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return
+	}
+	c.String(http.StatusOK, fmt.Sprintf("%d", total))
 }

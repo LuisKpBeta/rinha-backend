@@ -47,12 +47,17 @@ func (suite *TaskApiTestSuite) SetupHttpServer() {
 	searchPeople := &people.SearchPeople{
 		Repository: searchPeopleRepo,
 	}
+	countPeopleRepo := repo.CreateCountPeopleRepository(suite.Db)
+	countPeople := &people.CountPeople{
+		Repository: countPeopleRepo,
+	}
 
-	controller := pc.CreatePeopleController(create, findPeople, searchPeople)
+	controller := pc.CreatePeopleController(create, findPeople, searchPeople, countPeople)
 
 	suite.r.POST("/people", controller.Create)
 	suite.r.GET("/people", controller.SearchPeopleByTerm)
 	suite.r.GET("/people/:id", controller.FindById)
+	suite.r.GET("/contagem-pessoas", controller.Count)
 }
 func (suite *TaskApiTestSuite) RunHttpServer() {
 	suite.ts = httptest.NewServer(suite.r)
