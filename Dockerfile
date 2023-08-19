@@ -11,6 +11,6 @@ WORKDIR /app
 
 COPY --from=base /app/rinha ./
 
-EXPOSE 8080
+EXPOSE 80
 ENV GIN_MODE release
 CMD [ "./rinha" ]
