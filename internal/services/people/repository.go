@@ -10,3 +10,7 @@ type CreatePeopleRepository interface {
 type FindPeopleByIdRepository interface {
 	Find(id uuid.UUID) (*People, error)
 }
+
+type SearchPeopleRepository interface {
+	SearchPeople(term string) ([]People, error)
+}

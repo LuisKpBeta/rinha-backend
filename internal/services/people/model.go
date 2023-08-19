@@ -20,3 +20,6 @@ func (p *People) GetArrayFromStringStack() []string {
 	stacks := strings.Split(p.Stacks, ",")
 	return stacks
 }
+func (p *People) GetBirthdayFormated() string {
+	return strings.Split(p.Birthday, "T")[0]
+}
