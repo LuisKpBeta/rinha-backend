@@ -1,10 +1,13 @@
 package repository
 
 import (
-	"database/sql"
+	"context"
+	"time"
 
 	"github.com/LuisKpBeta/rinha-backend/internal/services/people"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 const (
@@ -12,25 +15,25 @@ const (
 )
 
 type PeopleRepository struct {
-	DbConn *sql.DB
+	DbConn *pgxpool.Pool
 }
 
-func CreatePeopleRepository(db *sql.DB) people.CreatePeopleRepository {
+func CreatePeopleRepository(db *pgxpool.Pool) people.CreatePeopleRepository {
 	return &PeopleRepository{
 		DbConn: db,
 	}
 }
-func CreateFindPeopleRepository(db *sql.DB) people.FindPeopleByIdRepository {
+func CreateFindPeopleRepository(db *pgxpool.Pool) people.FindPeopleByIdRepository {
 	return &PeopleRepository{
 		DbConn: db,
 	}
 }
-func CreateSearchPeopleRepository(db *sql.DB) people.SearchPeopleRepository {
+func CreateSearchPeopleRepository(db *pgxpool.Pool) people.SearchPeopleRepository {
 	return &PeopleRepository{
 		DbConn: db,
 	}
 }
-func CreateCountPeopleRepository(db *sql.DB) people.CountPeopleRepository {
+func CreateCountPeopleRepository(db *pgxpool.Pool) people.CountPeopleRepository {
 	return &PeopleRepository{
 		DbConn: db,
 	}
@@ -38,10 +41,10 @@ func CreateCountPeopleRepository(db *sql.DB) people.CountPeopleRepository {
 
 func (p *PeopleRepository) NickNameExists(nickname string) (bool, error) {
 	var id string
-	err := p.DbConn.QueryRow("SELECT id FROM people where nickname = $1", nickname).
+	err := p.DbConn.QueryRow(context.Background(), "SELECT id FROM people where nickname = $1", nickname).
 		Scan(&id)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if err == pgx.ErrNoRows {
 			return false, nil
 		}
 		return false, err
@@ -51,54 +54,49 @@ func (p *PeopleRepository) NickNameExists(nickname string) (bool, error) {
 
 func (p *PeopleRepository) Create(people *people.People) error {
 	people.Id = uuid.NewString()
-	stmt, err := p.DbConn.Prepare("INSERT INTO people (id, nickname, name, birthday, stacks)  VALUES ($1, $2, $3, $4, $5)")
+	_, err := p.DbConn.Exec(
+		context.Background(),
+		"INSERT INTO people (id, nickname, name, birthday, stacks)  VALUES ($1, $2, $3, $4, $5)",
+		people.Id, people.Nickname, people.Name, people.Birthday, people.Stacks)
 	if err != nil {
 		return err
 	}
-	defer stmt.Close()
-	_, err = stmt.Exec(people.Id, people.Nickname, people.Name, people.Birthday, people.Stacks)
-	if err != nil {
-		return err
-	}
+
 	return nil
 }
 
 func (p *PeopleRepository) Find(id uuid.UUID) (*people.People, error) {
 	var people people.People
-	err := p.DbConn.QueryRow("SELECT id, nickname, name, birthday, stacks FROM people WHERE id = $1", id).
-		Scan(&people.Id, &people.Nickname, &people.Name, &people.Birthday, &people.Stacks)
+	var birthday time.Time
+	err := p.DbConn.QueryRow(context.Background(), "SELECT id, nickname, name, birthday, stacks FROM people WHERE id = $1", id).
+		Scan(&people.Id, &people.Nickname, &people.Name, &birthday, &people.Stacks)
 
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if err == pgx.ErrNoRows {
 			return nil, nil
 		}
 		return nil, err
 	}
+	people.Birthday = birthday.Format("2006-01-02")
 	return &people, nil
 }
 func (p *PeopleRepository) SearchPeople(term string) ([]people.People, error) {
-
-	stmt, err := p.DbConn.Prepare("SELECT id, name, nickname, birthday, stacks FROM people WHERE nickname ILIKE $1 or name ILIKE $1 or stacks ILIKE $1 LIMIT $2")
-	if err != nil {
-		return nil, err
-	}
-	defer stmt.Close()
 	queryTerm := "%" + term + "%"
-	rows, err := stmt.Query(queryTerm, MAX_SEARCH_RESULT)
+	rows, err := p.DbConn.Query(context.Background(), "SELECT id, name, nickname, birthday, stacks FROM people WHERE nickname ILIKE $1 or name ILIKE $1 or stacks ILIKE $1 LIMIT $2", queryTerm, MAX_SEARCH_RESULT)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
 		return nil, err
 	}
+
 	var peopleList []people.People
 
 	for rows.Next() {
 		p := people.People{}
-		err := rows.Scan(&p.Id, &p.Name, &p.Nickname, &p.Birthday, &p.Stacks)
+		var birthday time.Time
+		err := rows.Scan(&p.Id, &p.Name, &p.Nickname, &birthday, &p.Stacks)
 		if err != nil {
 			return nil, err
 		}
+		p.Birthday = birthday.Format("2006-01-02")
 		peopleList = append(peopleList, p)
 	}
 	return peopleList, nil
@@ -107,7 +105,7 @@ func (p *PeopleRepository) SearchPeople(term string) ([]people.People, error) {
 
 func (p *PeopleRepository) Count() (int, error) {
 	var total int
-	err := p.DbConn.QueryRow("SELECT Count(id) FROM people").Scan(&total)
+	err := p.DbConn.QueryRow(context.Background(), "SELECT Count(id) FROM people").Scan(&total)
 
 	if err != nil {
 		return 0, err

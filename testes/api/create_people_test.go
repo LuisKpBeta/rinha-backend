@@ -2,6 +2,7 @@ package test_people
 
 import (
 	"bytes"
+	"context"
 	"net/http"
 
 	pc "github.com/LuisKpBeta/rinha-backend/internal/infra/api/controllers"
@@ -12,12 +13,8 @@ import (
 
 func (suite *TaskApiTestSuite) InsertPeopleDb(p *people.People) {
 	p.Id = uuid.NewString()
-	stmt, err := suite.Db.Prepare("INSERT INTO people (id, nickname, name, birthday, stacks)  VALUES ($1, $2, $3, $4, $5)")
-	if err != nil {
-		panic(err)
-	}
-	defer stmt.Close()
-	stmt.QueryRow(p.Id, p.Nickname, p.Name, p.Birthday, p.Stacks)
+	suite.Db.Exec(context.Background(), "INSERT INTO people (id, nickname, name, birthday, stacks)  VALUES ($1, $2, $3, $4, $5)", p.Id, p.Nickname, p.Name, p.Birthday, p.Stacks)
+
 }
 
 func (suite *TaskApiTestSuite) makeHttpPost(payload interface{}, url string) (*http.Response, error) {

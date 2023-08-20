@@ -1,7 +1,7 @@
 package test_people
 
 import (
-	"database/sql"
+	"context"
 	"net/http/httptest"
 	"testing"
 
@@ -10,12 +10,13 @@ import (
 	repo "github.com/LuisKpBeta/rinha-backend/internal/infra/database/people"
 	"github.com/LuisKpBeta/rinha-backend/internal/services/people"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/suite"
 )
 
 type TaskApiTestSuite struct {
 	suite.Suite
-	Db *sql.DB
+	Db *pgxpool.Pool
 	r  *gin.Engine
 	ts *httptest.Server
 }
@@ -30,8 +31,7 @@ func (suite *TaskApiTestSuite) TearDownSuite() {
 	suite.Db.Close()
 }
 func (suite *TaskApiTestSuite) SetupTest() {
-	stmt, _ := suite.Db.Prepare("DELETE FROM people")
-	stmt.Exec()
+	suite.Db.Exec(context.Background(),"DELETE FROM people")
 }
 func (suite *TaskApiTestSuite) SetupHttpServer() {
 	peopleRepo := repo.CreatePeopleRepository(suite.Db)
