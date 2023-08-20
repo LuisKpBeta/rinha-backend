@@ -24,3 +24,8 @@ db_con:
 	
 test:
 	go test ./... 
+
+
+build_push:
+	docker build . -t luiscarlosb3/rinhabackend:latest
+	docker push luiscarlosb3/rinhabackend:latest

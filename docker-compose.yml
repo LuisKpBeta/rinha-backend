@@ -30,7 +30,7 @@ services:
           memory: '0.5GB'
 
   api1: # API - Instância 01
-    image: rinha-api:latest
+    image: luiscarlosb3/rinhabackend:latest
     hostname: api1
     depends_on:
       - db
@@ -43,7 +43,7 @@ services:
           memory: '0.9GB'
 
   api2: # API - Instância 02
-    image: rinha-api:latest
+    image: luiscarlosb3/rinhabackend:latest
     hostname: api2
     depends_on:
       - db
