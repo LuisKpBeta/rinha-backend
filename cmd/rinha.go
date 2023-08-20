@@ -10,7 +10,7 @@ import (
 
 func main() {
 	dbConn := database.ConnectToDatabase()
-
+	defer dbConn.Close()
 	peopleRepo := repo.CreatePeopleRepository(dbConn)
 	create := &people.CreatePeople{
 		Repository: peopleRepo,
