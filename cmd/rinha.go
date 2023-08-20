@@ -10,21 +10,23 @@ import (
 
 func main() {
 	dbConn := database.ConnectToDatabase()
+	cacheCon := database.ConnectToCache()
 	defer dbConn.Close()
-	peopleRepo := repo.CreatePeopleRepository(dbConn)
+	defer cacheCon.Close()
+	peopleRepo := repo.CreatePeopleRepository(dbConn, cacheCon)
 	create := &people.CreatePeople{
 		Repository: peopleRepo,
 	}
-	findPeopleRepo := repo.CreateFindPeopleRepository(dbConn)
+	findPeopleRepo := repo.CreateFindPeopleRepository(dbConn, cacheCon)
 	findPeople := &people.FindPeopleById{
 		Repository: findPeopleRepo,
 	}
-	searchPeopleRepo := repo.CreateSearchPeopleRepository(dbConn)
+	searchPeopleRepo := repo.CreateSearchPeopleRepository(dbConn, cacheCon)
 	searchPeople := &people.SearchPeople{
 		Repository: searchPeopleRepo,
 	}
 
-	countPeopleRepo := repo.CreateCountPeopleRepository(dbConn)
+	countPeopleRepo := repo.CreateCountPeopleRepository(dbConn, cacheCon)
 	countPeople := &people.CountPeople{
 		Repository: countPeopleRepo,
 	}

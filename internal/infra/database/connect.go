@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/rueidis"
 
 	_ "github.com/lib/pq"
 )
@@ -24,6 +25,10 @@ func checkError(err error) {
 	}
 }
 
+type CacheClient struct {
+	Client rueidis.Client
+}
+
 func ConnectToDatabase() *pgxpool.Pool {
 	var connectionString string = fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable", HOST, USER, PASSWORD, DATABASE)
 
@@ -39,7 +44,12 @@ func ConnectToDatabase() *pgxpool.Pool {
 	CreateTable(db)
 	return db
 }
-
+func ConnectToCache() rueidis.Client {
+	client, err := rueidis.NewClient(rueidis.ClientOption{InitAddress: []string{"cache:6379"}})
+	checkError(err)
+	client.B().Ping()
+	return client
+}
 func CreateTable(db *pgxpool.Pool) {
 	create_table_query := `CREATE TABLE IF NOT EXISTS people (
 			id uuid NOT NULL,

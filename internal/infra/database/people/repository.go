@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/rueidis"
 )
 
 const (
@@ -15,31 +16,41 @@ const (
 )
 
 type PeopleRepository struct {
-	DbConn *pgxpool.Pool
+	DbConn   *pgxpool.Pool
+	CacheCon rueidis.Client
 }
 
-func CreatePeopleRepository(db *pgxpool.Pool) people.CreatePeopleRepository {
+func CreatePeopleRepository(db *pgxpool.Pool, cache rueidis.Client) people.CreatePeopleRepository {
 	return &PeopleRepository{
-		DbConn: db,
+		DbConn:   db,
+		CacheCon: cache,
 	}
 }
-func CreateFindPeopleRepository(db *pgxpool.Pool) people.FindPeopleByIdRepository {
+func CreateFindPeopleRepository(db *pgxpool.Pool, cache rueidis.Client) people.FindPeopleByIdRepository {
 	return &PeopleRepository{
-		DbConn: db,
+		DbConn:   db,
+		CacheCon: cache,
 	}
 }
-func CreateSearchPeopleRepository(db *pgxpool.Pool) people.SearchPeopleRepository {
+func CreateSearchPeopleRepository(db *pgxpool.Pool, cache rueidis.Client) people.SearchPeopleRepository {
 	return &PeopleRepository{
-		DbConn: db,
+		DbConn:   db,
+		CacheCon: cache,
 	}
 }
-func CreateCountPeopleRepository(db *pgxpool.Pool) people.CountPeopleRepository {
+func CreateCountPeopleRepository(db *pgxpool.Pool, cache rueidis.Client) people.CountPeopleRepository {
 	return &PeopleRepository{
-		DbConn: db,
+		DbConn:   db,
+		CacheCon: cache,
 	}
 }
 
 func (p *PeopleRepository) NickNameExists(nickname string) (bool, error) {
+	exists, _ := p.CacheCheckNicknameExists(nickname)
+	if exists {
+		return true, nil
+	}
+
 	var id string
 	err := p.DbConn.QueryRow(context.Background(), "SELECT id FROM people where nickname = $1", nickname).
 		Scan(&id)
@@ -61,12 +72,18 @@ func (p *PeopleRepository) Create(people *people.People) error {
 	if err != nil {
 		return err
 	}
+	go p.CacheSavePeople(people)
 
 	return nil
 }
 
 func (p *PeopleRepository) Find(id uuid.UUID) (*people.People, error) {
+	peoplecache, _ := p.CacheCheckIdExists(id)
+	if peoplecache != nil {
+		return peoplecache, nil
+	}
 	var people people.People
+
 	var birthday time.Time
 	err := p.DbConn.QueryRow(context.Background(), "SELECT id, nickname, name, birthday, stacks FROM people WHERE id = $1", id).
 		Scan(&people.Id, &people.Nickname, &people.Name, &birthday, &people.Stacks)
