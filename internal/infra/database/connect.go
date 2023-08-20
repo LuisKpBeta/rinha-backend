@@ -12,8 +12,8 @@ const (
 	DATABASE      = "rinhadb"
 	USER          = "postgres"
 	PASSWORD      = "postgres"
-	MAX_OPEN_CONN = 20
-	MAX_IDLE_CONN = 20
+	MAX_OPEN_CONN = 30
+	MAX_IDLE_CONN = 15
 )
 
 func checkError(err error) {
@@ -30,7 +30,7 @@ func ConnectToDatabase() *sql.DB {
 	err = db.Ping()
 	checkError(err)
 	db.SetMaxOpenConns(MAX_OPEN_CONN)
-	db.SetMaxOpenConns(MAX_IDLE_CONN)
+	db.SetMaxIdleConns(MAX_IDLE_CONN)
 	CreateTable(db)
 	return db
 }
