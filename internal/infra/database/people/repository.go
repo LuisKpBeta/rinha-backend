@@ -56,7 +56,10 @@ func (p *PeopleRepository) Create(people *people.People) error {
 		return err
 	}
 	defer stmt.Close()
-	stmt.QueryRow(people.Id, people.Nickname, people.Name, people.Birthday, people.Stacks)
+	_, err = stmt.Exec(people.Id, people.Nickname, people.Name, people.Birthday, people.Stacks)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -75,30 +78,28 @@ func (p *PeopleRepository) Find(id uuid.UUID) (*people.People, error) {
 }
 func (p *PeopleRepository) SearchPeople(term string) ([]people.People, error) {
 
-	stmt, err := p.DbConn.Prepare("SELECT id, name, nickname, birthday, stacks FROM people WHERE nickname ILIKE $1 or name ILIKE $1 or stacks ILIKE $1")
+	stmt, err := p.DbConn.Prepare("SELECT id, name, nickname, birthday, stacks FROM people WHERE nickname ILIKE $1 or name ILIKE $1 or stacks ILIKE $1 LIMIT $2")
 	if err != nil {
 		return nil, err
 	}
 	defer stmt.Close()
 	queryTerm := "%" + term + "%"
-	rows, err := stmt.Query(queryTerm)
+	rows, err := stmt.Query(queryTerm, MAX_SEARCH_RESULT)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
 		return nil, err
 	}
-	i := 0
 	var peopleList []people.People
 
-	for rows.Next() && i < MAX_SEARCH_RESULT {
+	for rows.Next() {
 		p := people.People{}
 		err := rows.Scan(&p.Id, &p.Name, &p.Nickname, &p.Birthday, &p.Stacks)
 		if err != nil {
 			return nil, err
 		}
 		peopleList = append(peopleList, p)
-		i++
 	}
 	return peopleList, nil
 
