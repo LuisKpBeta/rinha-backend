@@ -15,7 +15,19 @@ services:
           cpus: "0.5"
           memory: "0.5GB"
     volumes:
-      - rinha-db:/var/lib/postgresql/data
+      - ./inital.sql:/docker-entrypoint-initdb.d/init.sql
+
+  cache:
+    hostname: cache
+    image: redis:latest
+    command: redis-server --save "" --appendonly no
+    ports:
+      - '6379:6379'
+    deploy:
+      resources:
+        limits:
+          cpus: '0.06'
+          memory: '0.5GB'
 
   api1: # API - Instância 01
     image: rinha-api:latest
@@ -27,8 +39,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.4'
-          memory: '1.0GB'
+          cpus: '0.37'
+          memory: '0.9GB'
 
   api2: # API - Instância 02
     image: rinha-api:latest
@@ -40,8 +52,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.4'
-          memory: '1.0GB'
+          cpus: '0.37'
+          memory: '0.9GB'
 
   nginx: # Load Balancer
     image: nginx:latest
@@ -56,7 +68,7 @@ services:
       resources:
         limits:
           cpus: '0.2'
-          memory: '0.5GB'
+          memory: '0.2GB'
 
 volumes:
   rinha-db:
